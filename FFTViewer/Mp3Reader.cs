@@ -28,6 +28,7 @@ namespace FFTViewer
 
             DataL = new float[size];
             DataR = new float[size];
+            DataDiff = new float[size];
             using (var ms = new MemoryStream(convertedData))
             {
                 using (var br = new BinaryReader(ms))
@@ -36,6 +37,7 @@ namespace FFTViewer
                     {
                         DataL[i] = br.ReadInt16() / (float)Int16.MaxValue;
                         DataR[i] = br.ReadInt16() / (float)Int16.MaxValue;
+                        DataDiff[i] = DataL[i] - DataR[i];
                     }
                 }
             }
@@ -45,7 +47,7 @@ namespace FFTViewer
             TotalTimeMs = convertedData.Length * 1000L / f.AverageBytesPerSecond;
         }
 
-        public float[] DataL, DataR;
+        public float[] DataL, DataR, DataDiff;
 
         public byte[] RawData;
         public WaveFormat RawFormat;

@@ -17,7 +17,7 @@ namespace FFTViewer
             _LineBuffer = new int[imageWidth];
             _LockedData = _Image.LockBits(new Rectangle(0, 0, imageWidth, imageHeight),
                 ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-            _RatioY = ratioY;
+            RatioY = ratioY;
             _C0 = c0;
             _C = c;
         }
@@ -27,7 +27,7 @@ namespace FFTViewer
         private int _PositionY;
         private int[] _LineBuffer; //int32 argb values
         private bool _WrapImage = false;
-        private float _RatioY;
+        public float RatioY;
         private Color _C0, _C;
 
         public bool Enabled;
@@ -82,7 +82,7 @@ namespace FFTViewer
         private RectangleF DrawBitmapSection(Graphics g, RectangleF rect, int start, int end)
         {
             var absHeight = Math.Abs(rect.Height);
-            float available = ((end - start) * _RatioY) / absHeight;
+            float available = ((end - start) * RatioY) / absHeight;
             RectangleF src, dest, empty;
             if (available < 1)
             {
@@ -93,7 +93,7 @@ namespace FFTViewer
             }
             else
             {
-                var covered = absHeight / _RatioY;
+                var covered = absHeight / RatioY;
                 src = new RectangleF(0, end - covered, _Image.Width, covered);
                 dest = rect;
                 empty = new RectangleF(rect.Left, rect.Top, rect.Width, 0);

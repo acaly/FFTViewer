@@ -80,7 +80,7 @@ namespace FFTViewer
 
                 ImageRecorder = _Recorder,
             };
-            _RendererFFT.Start(80);
+            _RendererFFT.Start(50);
 
             _WavePlayer = new WavePlayer(_Reader);
         }
@@ -127,12 +127,13 @@ namespace FFTViewer
         private NoteLabelGroup _NoteLabel;
 
         private float _ScaleY = 1;
+        private int _FFTChannel = 0;
 
         private const int FFTLength = 8192; //Magic number for performing FFT.
 
         private float[] GetFFTData()
         {
-            _FFTPlayer.Calculate(0, (int)((_Clock.TimeMs) / 1000f * 44100), FFTLength);
+            _FFTPlayer.Calculate(_FFTChannel, (int)((_Clock.TimeMs) / 1000f * 44100), FFTLength);
             return _FFTPlayer.Buffer;
         }
 
@@ -188,6 +189,35 @@ namespace FFTViewer
         private void button9_Click(object sender, EventArgs e)
         {
             _Range.Base /= NoteConstants.Inc2;
+        }
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+            _Recorder.RatioY *= 1.1f;
+        }
+
+        private void button11_Click(object sender, EventArgs e)
+        {
+            _Recorder.RatioY /= 1.1f;
+        }
+
+        private void button12_Click(object sender, EventArgs e)
+        {
+            if (button12.Text == "L")
+            {
+                _FFTChannel = 1;
+                button12.Text = "R";
+            }
+            else if (button12.Text == "R")
+            {
+                _FFTChannel = 2;
+                button12.Text = "x";
+            }
+            else
+            {
+                _FFTChannel = 0;
+                button12.Text = "L";
+            }
         }
     }
 }

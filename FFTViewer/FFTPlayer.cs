@@ -27,7 +27,7 @@ namespace FFTViewer
                 Buffer = new float[len];
             }
 
-            float[] data = channel == 0 ? _Reader.DataL : _Reader.DataR;
+            float[] data = channel == 0 ? _Reader.DataL : channel == 1 ? _Reader.DataR : _Reader.DataDiff;
             
             if (offset + len > data.Length)
             {
@@ -42,7 +42,7 @@ namespace FFTViewer
             Fourier.Forward(_ReadBuffer);
             for (int i = 0; i < len; ++i)
             {
-                Buffer[i] = (float)_ReadBuffer[i].Norm();
+                Buffer[i] = (float)_ReadBuffer[i].Magnitude;
             }
         }
     }
