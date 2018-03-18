@@ -30,7 +30,7 @@ namespace FFTViewer
         public float RatioY;
         private Color _C0, _C;
 
-        public bool Enabled;
+        public bool Enabled = true;
 
         public void Write(RectangleF rect, PointF[] points)
         {

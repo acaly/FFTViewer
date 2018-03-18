@@ -161,7 +161,13 @@ namespace FFTViewer
 
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            Target.Invoke((Action)Target.Invalidate);
+            try
+            {
+                Target.Invoke((Action)Target.Invalidate);
+            }
+            catch
+            {
+            }
         }
 
         public void Stop()

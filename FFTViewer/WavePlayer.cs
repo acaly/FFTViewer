@@ -9,12 +9,12 @@ namespace FFTViewer
 {
     class WavePlayer
     {
-        public WavePlayer(Mp3Reader r)
+        public WavePlayer(byte[] rawData, WaveFormat rawFormat, float totalTimeMs)
         {
             _Device = new WaveOut();
-            _Provider = new RawSourceWaveStream(r.RawData, 0, r.RawData.Length, r.RawFormat);
+            _Provider = new RawSourceWaveStream(rawData, 0, rawData.Length, rawFormat);
             _Device.Init(_Provider);
-            _TotalMs = r.TotalTimeMs;
+            _TotalMs = totalTimeMs;
         }
 
         private WaveOut _Device;

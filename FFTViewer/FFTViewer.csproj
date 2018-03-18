@@ -53,6 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CaptureBuffer.cs" />
     <Compile Include="FFTImageRecorder.cs" />
     <Compile Include="FormFourier.cs">
       <SubType>Form</SubType>
@@ -61,10 +62,12 @@
       <DependentUpon>FormFourier.cs</DependentUpon>
     </Compile>
     <Compile Include="FFTPlayer.cs" />
+    <Compile Include="IAudioProvider.cs" />
     <Compile Include="ILabelXProvider.cs" />
+    <Compile Include="LoopbackCaptureProvider.cs" />
     <Compile Include="NoteConstants.cs" />
     <Compile Include="NoteLabelGroup.cs" />
-    <Compile Include="Mp3Reader.cs" />
+    <Compile Include="Mp3Provider.cs" />
     <Compile Include="NoteRange.cs" />
     <Compile Include="PlayerTimer.cs" />
     <Compile Include="Program.cs" />

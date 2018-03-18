@@ -12,6 +12,10 @@ namespace FFTViewer
         public const float Inc2 = Inc * Inc;
 
         public const float C4Freq = 261.6255653f;
-        public const float C4Position = C4Freq / 44100;
+
+        public static float C4Position(float rate)
+        {
+            return C4Freq / rate;
+        }
     }
 }

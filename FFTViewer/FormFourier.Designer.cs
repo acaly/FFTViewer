@@ -218,6 +218,7 @@
             this.Name = "FormFourier";
             this.ShowIcon = false;
             this.Text = "Fourier Analyzer";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FormFourier_FormClosed);
             this.Shown += new System.EventHandler(this.FormFourier_Shown);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();

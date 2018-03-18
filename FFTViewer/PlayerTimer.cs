@@ -8,12 +8,17 @@ using System.Threading.Tasks;
 
 namespace FFTViewer
 {
-    class PlayerTimer : ILabelXProvider
+    class PlayerTimer
     {
         private Stopwatch _Clock = new Stopwatch();
         private float _TimeOffset = 0;
 
-        public float TotalTimeMs { get; set; }
+        public PlayerTimer(float totalTimeMs)
+        {
+            TotalTimeMs = totalTimeMs;
+        }
+
+        public float TotalTimeMs { get; private set; }
 
         public void Start()
         {
@@ -50,7 +55,7 @@ namespace FFTViewer
 
         public float TimeMs => (_Clock.ElapsedMilliseconds) + _TimeOffset;
 
-        public void DrawAll(ILabelXRenderer r)
+        public void Update()
         {
             var val = TimeMs / TotalTimeMs;
             if (val > 1)
@@ -60,7 +65,6 @@ namespace FFTViewer
                 _TimeOffset = TotalTimeMs;
                 StateChanged?.Invoke();
             }
-            r.Draw(Pens.Red, val);
         }
 
         public bool IsRunning => _Clock.IsRunning;

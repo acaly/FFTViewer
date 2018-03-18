@@ -27,21 +27,23 @@ namespace FFTViewer
                 dialog.Filter = "*.mp3|*.mp3";
                 if (dialog.ShowDialog() == DialogResult.Cancel)
                 {
-                    Environment.Exit(0);
+                    this.Close();
+                    return;
                 }
                 filename = dialog.FileName;
             }
 
             Text += " - " + Path.GetFileNameWithoutExtension(filename);
 
-            _Reader = new Mp3Reader(filename);
-            _Compressed = SpectrumCompressor.Compress(_Reader, 2000);
+            _Provider = new LoopbackCaptureProvider();//new Mp3Provider(filename);
+            _Reader = _Provider.GetReader(0, FFTLength);
+            _PlayControl = _Provider.GetPlayControl();
+            _Compressed = _PlayControl.GetSpectrum();
             _FFTPlayer = new FFTPlayer(_Reader);
 
-            _Clock = new PlayerTimer { TotalTimeMs = _Reader.TotalTimeMs };
-            _Clock.StateChanged += () =>
+            _Provider.StateChanged += () =>
             {
-                _Recorder.Enabled = _Clock.IsRunning;
+                _Recorder.Enabled = _Provider.IsPlaying;
             };
 
             _RendererSpectrum = new Renderer
@@ -49,7 +51,7 @@ namespace FFTViewer
                 Target = pictureBox1,
                 Source = () => _Compressed,
 
-                LabelsXForeground = _Clock,
+                LabelsXForeground = new PlayControlLabelXProvider(_PlayControl),
 
                 ScaleY = CalcScaleYSpec,
 
@@ -59,7 +61,12 @@ namespace FFTViewer
             _RendererSpectrum.Start(120);
             _RendererSpectrum.DoubleClick += RendererSpectrum_DoubleClick;
 
-            _Range = new NoteRange { Base = NoteConstants.C4Position, OffsetMin = -4, OffsetMax = 5 };
+            _Range = new NoteRange
+            {
+                Base = NoteConstants.C4Position(_Provider.Rate),
+                OffsetMin = -4,
+                OffsetMax = 5,
+            };
             _NoteLabel = new NoteLabelGroup { Range = _Range };
             _Recorder = new FFTImageRecorder(600, 800, 3, Color.White, Color.Green);
             _RendererFFT = new Renderer
@@ -80,9 +87,7 @@ namespace FFTViewer
 
                 ImageRecorder = _Recorder,
             };
-            _RendererFFT.Start(50);
-
-            _WavePlayer = new WavePlayer(_Reader);
+            _RendererFFT.Start(15);
         }
 
         private float CalcScaleYFFT(float r)
@@ -90,7 +95,7 @@ namespace FFTViewer
             const float Min = 0;
             const float Mid = 1E-0f;
             const float Max = 100f;
-            const float RLow = 0.2f;
+            const float RLow = 0.1f;
             float ret;
             if (r < Min)
             {
@@ -115,25 +120,26 @@ namespace FFTViewer
             return (1 - val) / 2;
         }
 
-        private Mp3Reader _Reader;
+        private IAudioProvider _Provider;
+        private IAudioReader _Reader;
+        private IAudioPlayControl _PlayControl;
         private float[] _Compressed;
         private FFTPlayer _FFTPlayer;
         private Renderer _RendererSpectrum;
         private Renderer _RendererFFT;
         private FFTImageRecorder _Recorder;
-        private WavePlayer _WavePlayer;
-        private PlayerTimer _Clock;
         private NoteRange _Range;
         private NoteLabelGroup _NoteLabel;
 
         private float _ScaleY = 1;
         private int _FFTChannel = 0;
 
-        private const int FFTLength = 8192; //Magic number for performing FFT.
+        private const int FFTLength = 16384; //Magic number for performing FFT.
 
         private float[] GetFFTData()
         {
-            _FFTPlayer.Calculate(_FFTChannel, (int)((_Clock.TimeMs) / 1000f * 44100), FFTLength);
+            _PlayControl.Update();
+            _FFTPlayer.Calculate();
             return _FFTPlayer.Buffer;
         }
 
@@ -149,26 +155,22 @@ namespace FFTViewer
 
         private void button3_Click(object sender, EventArgs e)
         {
-            _WavePlayer.Play();
-            _Clock.Start();
+            _PlayControl.Play();
         }
 
         private void button4_Click(object sender, EventArgs e)
         {
-            _WavePlayer.Pause();
-            _Clock.Pause();
+            _PlayControl.Pause();
         }
 
         private void button5_Click(object sender, EventArgs e)
         {
-            _WavePlayer.Stop();
-            _Clock.Stop();
+            _PlayControl.Stop();
         }
 
         private void RendererSpectrum_DoubleClick(float x, float y)
         {
-            _WavePlayer.SetPosition(x);
-            _Clock.SetPosition(x * _Reader.TotalTimeMs);
+            _PlayControl.PositionRatio = x;
         }
 
         private void button6_Click(object sender, EventArgs e)
@@ -217,6 +219,20 @@ namespace FFTViewer
             {
                 _FFTChannel = 0;
                 button12.Text = "L";
+            }
+        }
+
+        private void FormFourier_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (_Reader != null)
+            {
+                _Reader.Dispose();
+                _Reader = null;
+            }
+            if (_Provider != null)
+            {
+                _Provider.Dispose();
+                _Provider = null;
             }
         }
     }
