@@ -8,18 +8,33 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{774F8D74-E69B-4651-BD98-AD7F862A4220}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{774F8D74-E69B-4651-BD98-AD7F862A4220}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{774F8D74-E69B-4651-BD98-AD7F862A4220}.Debug|x64.ActiveCfg = Debug|x64
+		{774F8D74-E69B-4651-BD98-AD7F862A4220}.Debug|x64.Build.0 = Debug|x64
+		{774F8D74-E69B-4651-BD98-AD7F862A4220}.Debug|x86.ActiveCfg = Debug|x86
+		{774F8D74-E69B-4651-BD98-AD7F862A4220}.Debug|x86.Build.0 = Debug|x86
 		{774F8D74-E69B-4651-BD98-AD7F862A4220}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{774F8D74-E69B-4651-BD98-AD7F862A4220}.Release|Any CPU.Build.0 = Release|Any CPU
+		{774F8D74-E69B-4651-BD98-AD7F862A4220}.Release|x64.ActiveCfg = Release|x64
+		{774F8D74-E69B-4651-BD98-AD7F862A4220}.Release|x64.Build.0 = Release|x64
+		{774F8D74-E69B-4651-BD98-AD7F862A4220}.Release|x86.ActiveCfg = Release|x86
+		{774F8D74-E69B-4651-BD98-AD7F862A4220}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {75CFDE1C-D0F3-4270-AF11-A376E6B9FD29}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

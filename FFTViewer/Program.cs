@@ -11,6 +11,7 @@ namespace FFTViewer
         [STAThread]
         static void Main()
         {
+            FFTWLoader.Test();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FormFourier());

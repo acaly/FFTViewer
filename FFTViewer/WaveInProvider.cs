@@ -7,21 +7,21 @@ using System.Threading.Tasks;
 
 namespace FFTViewer
 {
-    class LoopbackCaptureProvider : IAudioProvider
+    class WaveInProvider : IAudioProvider
     {
-        class Reader : IAudioReader
+        private class Reader : IAudioReader
         {
-            public Reader(LoopbackCaptureProvider provider, int len)
+            public Reader(WaveInProvider provider, int len)
             {
                 _Provider = provider;
                 BufferLength = len;
-                _Buffer = new CaptureBuffer<float>(len);
+                _Buffer = new CaptureBuffer<short>(len);
 
                 _Provider._Capture.DataAvailable += Capture_DataAvailable;
             }
 
-            private LoopbackCaptureProvider _Provider;
-            private CaptureBuffer<float> _Buffer;
+            private WaveInProvider _Provider;
+            private CaptureBuffer<short> _Buffer;
 
             public IAudioProvider Provider => _Provider;
             public int BufferLength { get; private set; }
@@ -42,23 +42,22 @@ namespace FFTViewer
 
             public void Read(float[] buffer)
             {
-                if (_Provider == null) return;
                 int channels = _Provider._Capture.WaveFormat.Channels;
                 for (int i = 0; i < _Buffer._Data.Length; i += channels)
                 {
-                    buffer[i] = _Buffer._Data[i];
+                    buffer[i] = _Buffer._Data[i] / 32768.0f;
                 }
             }
         }
 
-        public LoopbackCaptureProvider()
+        public WaveInProvider()
         {
-            _Capture = new WasapiLoopbackCapture();
+            _Capture = new WaveIn();
             Rate = _Capture.WaveFormat.SampleRate;
             _Capture.StartRecording();
         }
 
-        private WasapiLoopbackCapture _Capture;
+        private WaveIn _Capture;
 
         public event Action StateChanged;
 

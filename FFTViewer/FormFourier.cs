@@ -19,7 +19,7 @@ namespace FFTViewer
             InitializeComponent();
         }
 
-        private void FormFourier_Shown(object sender, EventArgs e)
+        private string OpenFile()
         {
             string filename;
             using (OpenFileDialog dialog = new OpenFileDialog())
@@ -28,15 +28,21 @@ namespace FFTViewer
                 if (dialog.ShowDialog() == DialogResult.Cancel)
                 {
                     this.Close();
-                    return;
+                    return null;
                 }
                 filename = dialog.FileName;
             }
-
             Text += " - " + Path.GetFileNameWithoutExtension(filename);
+            return filename;
+        }
 
-            _Provider = new LoopbackCaptureProvider();//new Mp3Provider(filename);
-            _Reader = _Provider.GetReader(0, FFTLength);
+        private void FormFourier_Shown(object sender, EventArgs e)
+        {
+            //_Provider = new Mp3Provider(OpenFile());
+            _Provider = new LoopbackCaptureProvider();
+            //_Provider = new WaveInProvider();
+
+            _Reader = _Provider.GetReader(0, FFTLength(_Provider.Rate));
             _PlayControl = _Provider.GetPlayControl();
             _Compressed = _PlayControl.GetSpectrum();
             _FFTPlayer = new FFTPlayer(_Reader);
@@ -133,8 +139,11 @@ namespace FFTViewer
 
         private float _ScaleY = 1;
         private int _FFTChannel = 0;
-
-        private const int FFTLength = 16384; //Magic number for performing FFT.
+        
+        private static int FFTLength(int sampleRate)
+        {
+            return 8 * (int)(0.024f * sampleRate); //Magic number for performing FFT.
+        }
 
         private float[] GetFFTData()
         {
