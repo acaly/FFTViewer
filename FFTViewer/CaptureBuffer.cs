@@ -14,9 +14,20 @@ namespace FFTViewer
         public CaptureBuffer(int length)
         {
             _Data = new T[length];
+            _PinnedHandle = GCHandle.Alloc(_Data, GCHandleType.Pinned);
+            _Pointer = _PinnedHandle.AddrOfPinnedObject();
         }
 
-        public T[] _Data { get; private set; }
+        ~CaptureBuffer()
+        {
+            _PinnedHandle.Free();
+        }
+
+        private T[] _Data;
+        private GCHandle _PinnedHandle;
+        private IntPtr _Pointer;
+
+        public IntPtr Pointer => _Pointer;
 
         public void Write(byte[] buffer, int offset, int length)
         {

@@ -38,19 +38,14 @@ namespace FFTViewer
 
         private void FormFourier_Shown(object sender, EventArgs e)
         {
-            //_Provider = new Mp3Provider(OpenFile());
-            _Provider = new LoopbackCaptureProvider();
+            _Provider = new Mp3Provider(OpenFile());
+            //_Provider = new LoopbackCaptureProvider();
             //_Provider = new WaveInProvider();
 
-            _Reader = _Provider.GetReader(0, FFTLength(_Provider.Rate));
+            _Reader = _Provider.GetReader(0, FFTLength(_Provider.Format.SampleRate));
             _PlayControl = _Provider.GetPlayControl();
             _Compressed = _PlayControl.GetSpectrum();
             _FFTPlayer = new FFTPlayer(_Reader);
-
-            _Provider.StateChanged += () =>
-            {
-                _Recorder.Enabled = _Provider.IsPlaying;
-            };
 
             _RendererSpectrum = new Renderer
             {
@@ -69,7 +64,7 @@ namespace FFTViewer
 
             _Range = new NoteRange
             {
-                Base = NoteConstants.C4Position(_Provider.Rate),
+                Base = NoteConstants.C4Position(_Provider.Format.SampleRate),
                 OffsetMin = -4,
                 OffsetMax = 5,
             };
@@ -93,6 +88,13 @@ namespace FFTViewer
 
                 ImageRecorder = _Recorder,
             };
+
+            _Provider.StateChanged += () =>
+            {
+                _Recorder.Enabled = _Provider.IsPlaying;
+            };
+            _Recorder.Enabled = _Provider.IsPlaying;
+
             _RendererFFT.Start(15);
         }
 

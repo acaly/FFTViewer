@@ -8,15 +8,24 @@ using System.Threading.Tasks;
 
 namespace FFTViewer
 {
-    class FFTPlayer
+    unsafe class FFTPlayer
     {
         public FFTPlayer(IAudioReader reader)
         {
             _Reader = reader;
+            _RawDataReader = FFTDataReaderFactory.CreateForFormat(reader.Provider.Format);
 
             int bufferLength = reader.BufferLength;
-            _ReadBuffer = new Complex32[bufferLength];
             Buffer = new float[bufferLength];
+
+            UIntPtr allocSize = (UIntPtr)(8 * (uint)bufferLength);
+            _Input = FFTW.Malloc(allocSize);
+            _Output = FFTW.Malloc(allocSize);
+            _Plan = FFTW.PlanDft1D(bufferLength, _Input, _Output, 1, 0 /* FFTW_MEASURE */);
+            for (int i = 0; i < bufferLength; ++i)
+            {
+                _Input[i].Imaginary = 0; //Clear only imaginary
+            }
 
             _WindowFunction = new float[bufferLength];
             float sigma = bufferLength / 2 / WindowRange;
@@ -28,27 +37,33 @@ namespace FFTViewer
             }
         }
 
-        private const float WindowRange = 3.0f;
+        ~FFTPlayer()
+        {
+            //TODO use IDisposable
+            FFTW.DestroyPlan(_Plan);
+            FFTW.Free(_Input);
+            FFTW.Free(_Output);
+        }
+
+        private const float WindowRange = 4;
 
         private readonly IAudioReader _Reader;
-        private Complex32[] _ReadBuffer;
+        private readonly IFFTDataReader _RawDataReader;
+
+        private IntPtr _Plan;
+        private FFTW.Complex* _Input;
+        private FFTW.Complex* _Output;
         private float[] _WindowFunction;
         public float[] Buffer;
 
         public void Calculate()
         {
-            _Reader.Read(Buffer); //TODO do not use this buffer. Fix after changing to FFTW
+            _RawDataReader.ReadToBuffer(_WindowFunction.Length, _Reader.GetRawBuffer(), _WindowFunction, _Input);
+            FFTW.Execute(_Plan);
 
-            for (int i = 0; i < _ReadBuffer.Length; ++i)
+            for (int i = 0; i < _WindowFunction.Length; ++i)
             {
-                _ReadBuffer[i] = new Complex32(Buffer[i] * _WindowFunction[i], 0);
-            }
-
-            Fourier.Forward(_ReadBuffer);
-
-            for (int i = 0; i < _ReadBuffer.Length; ++i)
-            {
-                Buffer[i] = (float)_ReadBuffer[i].Magnitude;
+                Buffer[i] = (float)Math.Sqrt(_Output[i].Length());
             }
         }
     }

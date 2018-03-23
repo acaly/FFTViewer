@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NAudio.Wave;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,7 @@ namespace FFTViewer
     {
         IAudioProvider Provider { get; }
         int BufferLength { get; }
-        void Read(float[] buffer);
+        unsafe void* GetRawBuffer();
     }
 
     interface IAudioPlayControl
@@ -27,7 +28,7 @@ namespace FFTViewer
 
     interface IAudioProvider : IDisposable
     {
-        int Rate { get; }
+        WaveFormat Format { get; }
         int SourceCount { get; }
         bool IsPlaying { get; }
         IAudioReader GetReader(int sourceIndex, int bufferLength);

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,11 +18,17 @@ namespace FFTViewer
                 _Provider = provider;
                 _Index = index;
                 _BufferLength = bufferLength;
+
+                _FrameLength = _Provider._RawFormat.BitsPerSample / 8 * _Provider._RawFormat.Channels;
+                _MaxOffset = _Provider._RawData.Length - _FrameLength * _BufferLength;
             }
 
             private readonly Mp3Provider _Provider;
             private readonly int _Index;
             private readonly int _BufferLength;
+
+            private readonly int _FrameLength;
+            private readonly int _MaxOffset;
 
             public int BufferLength => _BufferLength;
             public IAudioProvider Provider => _Provider;
@@ -30,30 +37,15 @@ namespace FFTViewer
             {
             }
 
-            public void Read(float[] buffer)
+            public unsafe void* GetRawBuffer()
             {
                 int frame = (int)(_Provider._Timer.TimeMs / 1000 * 44100);
-                switch (_Index)
+                int offset = frame * _FrameLength;
+                if (offset > _MaxOffset)
                 {
-                    case 0:
-                        for (int i = 0; i < _BufferLength; ++i)
-                        {
-                            buffer[i] = _Provider._DataL[frame + i];
-                        }
-                        break;
-                    case 1:
-                        for (int i = 0; i < _BufferLength; ++i)
-                        {
-                            buffer[i] = _Provider._DataR[frame + i];
-                        }
-                        break;
-                    case 2:
-                        for (int i = 0; i < _BufferLength; ++i)
-                        {
-                            buffer[i] = _Provider._DataL[frame + i] - _Provider._DataR[frame + i];
-                        }
-                        break;
+                    offset = _MaxOffset;
                 }
+                return (_Provider._PinnedPtr + offset).ToPointer();
             }
         }
 
@@ -73,21 +65,10 @@ namespace FFTViewer
                 }
             }
 
-            _DataL = new float[size];
-            _DataR = new float[size];
-            using (var ms = new MemoryStream(convertedData))
-            {
-                using (var br = new BinaryReader(ms))
-                {
-                    for (int i = 0; i < size; ++i)
-                    {
-                        _DataL[i] = br.ReadInt16() / (float)Int16.MaxValue;
-                        _DataR[i] = br.ReadInt16() / (float)Int16.MaxValue;
-                    }
-                }
-            }
-
             _RawData = convertedData;
+            _PinnedHandle = GCHandle.Alloc(_RawData, GCHandleType.Pinned);
+            _PinnedPtr = _PinnedHandle.AddrOfPinnedObject();
+
             _RawFormat = f;
             _TotalTimeMs = convertedData.Length * 1000L / f.AverageBytesPerSecond;
 
@@ -97,21 +78,29 @@ namespace FFTViewer
             _WavePlayer = new WavePlayer(_RawData, _RawFormat, _TotalTimeMs);
         }
 
+        ~Mp3Provider()
+        {
+            DoDispose();
+        }
+
         private void Timer_StateChanged()
         {
             StateChanged?.Invoke();
         }
 
-        private float[] _DataL, _DataR;
-
+        private bool _Disposed = false;
+        
         private byte[] _RawData;
+        private GCHandle _PinnedHandle;
+        private IntPtr _PinnedPtr;
+
         private WaveFormat _RawFormat;
         private long _TotalTimeMs;
 
         private PlayerTimer _Timer;
         private WavePlayer _WavePlayer;
 
-        public int Rate => 44100;
+        public WaveFormat Format => _RawFormat;
         public int SourceCount => 3;
         public bool IsPlaying => _Timer.IsRunning;
 
@@ -130,8 +119,22 @@ namespace FFTViewer
             return new Mp3Reader(this, sourceIndex, bufferLength);
         }
 
+        private void DoDispose()
+        {
+            if (_PinnedHandle.IsAllocated)
+            {
+                _PinnedHandle.Free();
+            }
+        }
+
         public void Dispose()
         {
+            if (!_Disposed)
+            {
+                _Disposed = true;
+                DoDispose();
+                GC.SuppressFinalize(this);
+            }
         }
 
         public void Update()
@@ -141,7 +144,7 @@ namespace FFTViewer
 
         public float[] GetSpectrum()
         {
-            return SpectrumCompressor.Compress(_DataL, _DataR, 8000);
+            return SpectrumCompressor.CompressInt16(_RawData, 8000);
         }
 
         public void Play()

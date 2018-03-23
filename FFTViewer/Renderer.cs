@@ -108,7 +108,14 @@ namespace FFTViewer
             LabelsXBackground?.DrawAll(labelXRenderer);
 
             //Draw
-            g.DrawLines(Pens.Black, _PointBuffer);
+            try
+            {
+                //TODO FFTW sometimes give INF data
+                g.DrawLines(Pens.Black, _PointBuffer);
+            }
+            catch
+            {
+            }
 
             //Foreground label
             LabelsXForeground?.DrawAll(labelXRenderer);

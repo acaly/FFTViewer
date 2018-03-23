@@ -40,21 +40,16 @@ namespace FFTViewer
                 _Buffer.Write(e.Buffer, 0, e.BytesRecorded);
             }
 
-            public void Read(float[] buffer)
+            public unsafe void* GetRawBuffer()
             {
-                if (_Provider == null) return;
-                int channels = _Provider._Capture.WaveFormat.Channels;
-                for (int i = 0; i < _Buffer._Data.Length; i += channels)
-                {
-                    buffer[i] = _Buffer._Data[i];
-                }
+                return _Buffer.Pointer.ToPointer();
             }
         }
 
         public LoopbackCaptureProvider()
         {
             _Capture = new WasapiLoopbackCapture();
-            Rate = _Capture.WaveFormat.SampleRate;
+            Format = _Capture.WaveFormat;
             _Capture.StartRecording();
         }
 
@@ -62,7 +57,7 @@ namespace FFTViewer
 
         public event Action StateChanged;
 
-        public int Rate { get; private set; }
+        public WaveFormat Format { get; private set; }
         public int SourceCount => 1;
         public bool IsPlaying => true;
 
