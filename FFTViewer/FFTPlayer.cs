@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace FFTViewer
 {
+    //TODO make a chain of IDisposable
     unsafe class FFTPlayer
     {
         public FFTPlayer(IAudioReader reader)
@@ -39,7 +40,6 @@ namespace FFTViewer
 
         ~FFTPlayer()
         {
-            //TODO use IDisposable
             FFTW.DestroyPlan(_Plan);
             FFTW.Free(_Input);
             FFTW.Free(_Output);
@@ -58,7 +58,8 @@ namespace FFTViewer
 
         public void Calculate()
         {
-            _RawDataReader.ReadToBuffer(_WindowFunction.Length, _Reader.GetRawBuffer(), _WindowFunction, _Input);
+            _Reader.GetRawBuffer(out var buffer, out var offset);
+            _RawDataReader.ReadToBuffer(buffer, offset, _WindowFunction, _Input);
             FFTW.Execute(_Plan);
 
             for (int i = 0; i < _WindowFunction.Length; ++i)

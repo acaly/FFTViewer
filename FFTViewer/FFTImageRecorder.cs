@@ -104,6 +104,11 @@ namespace FFTViewer
 
         public void DrawBitmap(Graphics g, RectangleF rect)
         {
+            //Try to be fast
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighSpeed;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
+
             if (_PositionY == 0) return;
 
             _Image.UnlockBits(_LockedData);

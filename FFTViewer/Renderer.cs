@@ -41,14 +41,14 @@ namespace FFTViewer
             return r;
         }
 
-        private void CalculatePoints(float[] val, double x0, double xstep, double y0, double ystep, int step)
+        private void CalculatePoints(float[] val, double x0, double xstep, double y0, double ystep)
         {
-            EnsureBuffer((val.Length - 1) / step + 1);
-            for (int i = 0; i * step < val.Length; ++i)
+            for (int i = 0; i < _PointBuffer.Length; ++i)
             {
+                //TODO draw less points (at high frequency range)
                 _PointBuffer[i] = new PointF(
-                    (float)(x0 + xstep * val.Length * ScaleX(i * step / (float)val.Length)),
-                    (float)(y0 + ystep * ScaleY(val[i * step])));
+                    (float)(x0 + xstep * val.Length * ScaleX(i / (float)val.Length)),
+                    (float)(y0 + ystep * ScaleY(val[i])));
             }
         }
 
@@ -67,9 +67,31 @@ namespace FFTViewer
             }
         }
 
+        public void ResizeBuffer(int size)
+        {
+            for (int i = 0; i < size; ++i)
+            {
+                var pos = ScaleX(i / (float)size);
+                if (pos > 1)
+                {
+                    EnsureBuffer(i);
+                    return;
+                }
+            }
+            EnsureBuffer(size);
+        }
+
         public void Render(Graphics g, float[] val)
         {
             if (val.Length < 2) return;
+
+            if (ScaleX == null) ScaleX = DefaultScale;
+            if (ScaleY == null) ScaleY = DefaultScale;
+
+            if (_PointBuffer == null || _PointBuffer.Length == 0)
+            {
+                ResizeBuffer(val.Length);
+            }
 
             var region = Target.ClientRectangle;
             var left = region.Left + MarginLeft;
@@ -82,9 +104,7 @@ namespace FFTViewer
 
             var maxPointNum = width * 3;
             
-            if (ScaleX == null) ScaleX = DefaultScale;
-            if (ScaleY == null) ScaleY = DefaultScale;
-            CalculatePoints(val, left, width / (val.Length - 1), y0, ystep, 1);
+            CalculatePoints(val, left, width / (val.Length - 1), y0, ystep);
             
             //Record
             var recorderRect = new RectangleF(left, top, width, height);
@@ -110,7 +130,7 @@ namespace FFTViewer
             //Draw
             try
             {
-                //TODO FFTW sometimes give INF data
+                //In case of NaN/Inf
                 g.DrawLines(Pens.Black, _PointBuffer);
             }
             catch

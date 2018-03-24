@@ -37,15 +37,15 @@ namespace FFTViewer
             {
             }
 
-            public unsafe void* GetRawBuffer()
+            public void GetRawBuffer(out byte[] buffer, out int offset)
             {
+                buffer = _Provider._RawData;
                 int frame = (int)(_Provider._Timer.TimeMs / 1000 * 44100);
-                int offset = frame * _FrameLength;
+                offset = frame * _FrameLength;
                 if (offset > _MaxOffset)
                 {
                     offset = _MaxOffset;
                 }
-                return (_Provider._PinnedPtr + offset).ToPointer();
             }
         }
 
@@ -66,8 +66,6 @@ namespace FFTViewer
             }
 
             _RawData = convertedData;
-            _PinnedHandle = GCHandle.Alloc(_RawData, GCHandleType.Pinned);
-            _PinnedPtr = _PinnedHandle.AddrOfPinnedObject();
 
             _RawFormat = f;
             _TotalTimeMs = convertedData.Length * 1000L / f.AverageBytesPerSecond;
@@ -91,8 +89,6 @@ namespace FFTViewer
         private bool _Disposed = false;
         
         private byte[] _RawData;
-        private GCHandle _PinnedHandle;
-        private IntPtr _PinnedPtr;
 
         private WaveFormat _RawFormat;
         private long _TotalTimeMs;
@@ -121,10 +117,6 @@ namespace FFTViewer
 
         private void DoDispose()
         {
-            if (_PinnedHandle.IsAllocated)
-            {
-                _PinnedHandle.Free();
-            }
         }
 
         public void Dispose()

@@ -40,9 +40,9 @@ namespace FFTViewer
                 _Buffer.Write(e.Buffer, e.BytesRecorded);
             }
 
-            public unsafe void* GetRawBuffer()
+            public void GetRawBuffer(out byte[] buffer, out int offset)
             {
-                return _Buffer.Pointer.ToPointer();
+                _Buffer.Read(out buffer, out offset);
             }
         }
 

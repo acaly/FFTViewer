@@ -34,15 +34,5 @@ namespace FFTViewer
 
         [DllImport("libfftw3f.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "fftwf_execute")]
         public static extern void Execute(IntPtr plan);
-
-        public static void Test()
-        {
-            var x1 = Malloc(new UIntPtr(8 * 2048));
-            var x2 = Malloc(new UIntPtr(8 * 2048));
-            var plan = PlanDft1D(2048, x1, x2, 1, 0 /* FFTW_MEASURE */);
-            DestroyPlan(plan);
-            Free(x1);
-            Free(x2);
-        }
     }
 }

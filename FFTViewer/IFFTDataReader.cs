@@ -9,7 +9,7 @@ namespace FFTViewer
 {
     interface IFFTDataReader
     {
-        unsafe void ReadToBuffer(int n, void* src, float[] window, FFTW.Complex* dest);
+        unsafe void ReadToBuffer(byte[] src, int offset, float[] window, FFTW.Complex* dest);
     }
 
     class FFTDataReaderFloat : IFFTDataReader
@@ -23,13 +23,17 @@ namespace FFTViewer
         private readonly int Channel;
         private readonly int ChannelCount;
 
-        public unsafe void ReadToBuffer(int n, void* src, float[] window, FFTW.Complex* dest)
+        public unsafe void ReadToBuffer(byte[] src, int offset, float[] window, FFTW.Complex* dest)
         {
-            float* srcf = (float*)src + Channel;
-            for (int i = 0, j = 0; i < n; i += 1, j += ChannelCount)
+            int n = window.Length;
+            fixed (void* srcptr = &src[offset])
             {
-                dest[i].Real = srcf[j] * window[i] / 100;
-                dest[i].Imaginary = 0;
+                float* srcf = (float*)srcptr + Channel;
+                for (int i = 0, j = 0; i < n; i += 1, j += ChannelCount)
+                {
+                    dest[i].Real = srcf[j] * window[i] / 100;
+                    dest[i].Imaginary = 0;
+                }
             }
         }
     }
@@ -45,12 +49,16 @@ namespace FFTViewer
         private readonly int Channel;
         private readonly int ChannelCount;
 
-        public unsafe void ReadToBuffer(int n, void* src, float[] window, FFTW.Complex* dest)
+        public unsafe void ReadToBuffer(byte[] src, int offset, float[] window, FFTW.Complex* dest)
         {
-            short* srcf = (short*)src + Channel;
-            for (int i = 0, j = 0; i < n; i += 1, j += ChannelCount)
+            int n = window.Length;
+            fixed (void* srcptr = &src[offset])
             {
-                dest[i].Real = srcf[j] * window[i] / 32768f / 100; //TODO why this affects the result?
+                short* srcf = (short*)srcptr + Channel;
+                for (int i = 0, j = 0; i < n; i += 1, j += ChannelCount)
+                {
+                    dest[i].Real = srcf[j] * window[i] / 32768f / 100; //TODO why this affects the result?
+                }
             }
         }
     }

@@ -15,25 +15,20 @@ namespace FFTViewer
         {
             int bufferLen = length * format.BitsPerSample / 8 * format.Channels;
             _Data = new byte[bufferLen];
-            _PinnedHandle = GCHandle.Alloc(_Data, GCHandleType.Pinned);
-            _Pointer = _PinnedHandle.AddrOfPinnedObject();
-        }
-
-        ~CaptureBuffer()
-        {
-            _PinnedHandle.Free();
         }
 
         private byte[] _Data;
-        private GCHandle _PinnedHandle;
-        private IntPtr _Pointer;
-
-        public IntPtr Pointer => _Pointer;
 
         public void Write(byte[] buffer, int length)
         {
             Array.ConstrainedCopy(_Data, length, _Data, 0, _Data.Length - length);
             Array.Copy(buffer, 0, _Data, _Data.Length - length, length);
+        }
+
+        public void Read(out byte[] data, out int offset)
+        {
+            data = _Data;
+            offset = 0;
         }
     }
 }

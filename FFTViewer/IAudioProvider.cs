@@ -11,7 +11,7 @@ namespace FFTViewer
     {
         IAudioProvider Provider { get; }
         int BufferLength { get; }
-        unsafe void* GetRawBuffer();
+        void GetRawBuffer(out byte[] buffer, out int offset);
     }
 
     interface IAudioPlayControl
@@ -40,7 +40,7 @@ namespace FFTViewer
     {
         public float PositionRatio
         {
-            get => 0;
+            get => -1;
             set { }
         }
         
