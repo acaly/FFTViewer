@@ -28,7 +28,7 @@ namespace FFTViewer
             float* srcf = (float*)src + Channel;
             for (int i = 0, j = 0; i < n; i += 1, j += ChannelCount)
             {
-                dest[i].Real = srcf[j] * window[i] * 1E-30f;
+                dest[i].Real = srcf[j] * window[i] / 100;
                 dest[i].Imaginary = 0;
             }
         }

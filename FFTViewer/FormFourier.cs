@@ -38,9 +38,9 @@ namespace FFTViewer
 
         private void FormFourier_Shown(object sender, EventArgs e)
         {
-            _Provider = new Mp3Provider(OpenFile());
+            //_Provider = new Mp3Provider(OpenFile());
             //_Provider = new LoopbackCaptureProvider();
-            //_Provider = new WaveInProvider();
+            _Provider = new WaveInProvider();
 
             _Reader = _Provider.GetReader(0, FFTLength(_Provider.Format.SampleRate));
             _PlayControl = _Provider.GetPlayControl();

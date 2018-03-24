@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NAudio.Wave;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -7,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace FFTViewer
 {
-    class CaptureBuffer<T>
+    class CaptureBuffer
     {
-        private static readonly int SizeOfT = Marshal.SizeOf<T>();
-
-        public CaptureBuffer(int length)
+        //TODO make the internal buffer larger to avoid memmove every time.
+        public CaptureBuffer(WaveFormat format, int length)
         {
-            _Data = new T[length];
+            int bufferLen = length * format.BitsPerSample / 8 * format.Channels;
+            _Data = new byte[bufferLen];
             _PinnedHandle = GCHandle.Alloc(_Data, GCHandleType.Pinned);
             _Pointer = _PinnedHandle.AddrOfPinnedObject();
         }
@@ -23,22 +24,16 @@ namespace FFTViewer
             _PinnedHandle.Free();
         }
 
-        private T[] _Data;
+        private byte[] _Data;
         private GCHandle _PinnedHandle;
         private IntPtr _Pointer;
 
         public IntPtr Pointer => _Pointer;
 
-        public void Write(byte[] buffer, int offset, int length)
+        public void Write(byte[] buffer, int length)
         {
-            int start = 0, copyLen = _Data.Length;
-            if (length / SizeOfT < copyLen)
-            {
-                start = copyLen - length / SizeOfT;
-                copyLen = length / SizeOfT;
-                Array.ConstrainedCopy(_Data, length / SizeOfT, _Data, 0, start);
-            }
-            Buffer.BlockCopy(buffer, offset + length - copyLen * SizeOfT, _Data, start * SizeOfT, copyLen * SizeOfT);
+            Array.ConstrainedCopy(_Data, length, _Data, 0, _Data.Length - length);
+            Array.Copy(buffer, 0, _Data, _Data.Length - length, length);
         }
     }
 }

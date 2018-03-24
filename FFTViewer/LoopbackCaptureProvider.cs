@@ -15,13 +15,13 @@ namespace FFTViewer
             {
                 _Provider = provider;
                 BufferLength = len;
-                _Buffer = new CaptureBuffer<float>(len);
+                _Buffer = new CaptureBuffer(_Provider.Format, len);
 
                 _Provider._Capture.DataAvailable += Capture_DataAvailable;
             }
 
             private LoopbackCaptureProvider _Provider;
-            private CaptureBuffer<float> _Buffer;
+            private CaptureBuffer _Buffer;
 
             public IAudioProvider Provider => _Provider;
             public int BufferLength { get; private set; }
@@ -37,7 +37,7 @@ namespace FFTViewer
 
             private void Capture_DataAvailable(object sender, WaveInEventArgs e)
             {
-                _Buffer.Write(e.Buffer, 0, e.BytesRecorded);
+                _Buffer.Write(e.Buffer, e.BytesRecorded);
             }
 
             public unsafe void* GetRawBuffer()
