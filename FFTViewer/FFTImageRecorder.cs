@@ -11,10 +11,10 @@ namespace FFTViewer
 {
     class FFTImageRecorder
     {
-        public FFTImageRecorder(int imageWidth, int imageHeight, float ratioY, Color c0, Color c)
+        public FFTImageRecorder(int imageWidth, int imageHeight, float ratioY, Color c0, Color c1, Color c2)
         {
             _Image = new Bitmap(imageWidth, imageHeight, PixelFormat.Format32bppArgb);
-            _Rasterizer = new FFTImageRasterizer(imageWidth, c0, c);
+            _Rasterizer = new FFTImageRasterizer(imageWidth, c0, c1, c2);
             _LockedData = _Image.LockBits(new Rectangle(0, 0, imageWidth, imageHeight),
                 ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
             RatioY = ratioY;
@@ -29,7 +29,7 @@ namespace FFTViewer
 
         public bool Enabled = true;
 
-        public void Write(RectangleF rect, PointF[] points)
+        public void Write(RectangleF rect, PointF[] points, float[] channel2)
         {
             if (!Enabled)
             {
@@ -46,7 +46,7 @@ namespace FFTViewer
                 var point = points[i];
                 var x = (point.X - rect.Left) / rect.Width * _Image.Width;
                 var y = (rect.Bottom - point.Y) / rect.Height;
-                _Rasterizer.DrawPoint(x, y);
+                _Rasterizer.DrawPoint(x, y, channel2 == null ? 0 : channel2[i]);
             }
             _Rasterizer.End();
 

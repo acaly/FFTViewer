@@ -11,7 +11,7 @@ namespace FFTViewer
     {
         IAudioProvider Provider { get; }
         int BufferLength { get; }
-        void GetRawBuffer(out byte[] buffer, out int offset);
+        float GetRawBuffer(out byte[] buffer, out int offset);
     }
 
     interface IAudioPlayControl

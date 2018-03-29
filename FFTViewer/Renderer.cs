@@ -12,6 +12,8 @@ namespace FFTViewer
 {
     class Renderer
     {
+        public delegate void GetTwoChannelDataDelegate(out float[] d1, out float[] d2);
+
         private PointF[] _PointBuffer;
         private Timer _Timer;
 
@@ -20,6 +22,7 @@ namespace FFTViewer
         public float? FixedRangeY = null;
 
         public Func<float[]> Source;
+        public GetTwoChannelDataDelegate Source2;
         public Func<float, float> ScaleX;
         public Func<float, float> ScaleY;
 
@@ -81,7 +84,7 @@ namespace FFTViewer
             EnsureBuffer(size);
         }
 
-        public void Render(Graphics g, float[] val)
+        public void Render(Graphics g, float[] val, float[] val2 = null)
         {
             if (val.Length < 2) return;
 
@@ -108,7 +111,7 @@ namespace FFTViewer
             
             //Record
             var recorderRect = new RectangleF(left, top, width, height);
-            ImageRecorder?.Write(recorderRect, _PointBuffer);
+            ImageRecorder?.Write(recorderRect, _PointBuffer, val2);
             ImageRecorder?.DrawBitmap(g, recorderRect);
             
             var labelXRenderer = new LabelXRenderer
@@ -210,7 +213,15 @@ namespace FFTViewer
         private void Target_Paint(object sender, PaintEventArgs e)
         {
             e.Graphics.Clear(Color.White);
-            Render(e.Graphics, Source());
+            if (Source2 != null)
+            {
+                Source2(out var d1, out var d2);
+                Render(e.Graphics, d1, d2);
+            }
+            else
+            {
+                Render(e.Graphics, Source());
+            }
         }
     }
 }

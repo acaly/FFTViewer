@@ -24,7 +24,7 @@ namespace FFTViewer
             string filename;
             using (OpenFileDialog dialog = new OpenFileDialog())
             {
-                dialog.Filter = "*.mp3|*.mp3";
+                dialog.Filter = "*.mp3,*.wav|*.mp3;*.wav";
                 if (dialog.ShowDialog() == DialogResult.Cancel)
                 {
                     this.Close();
@@ -38,8 +38,8 @@ namespace FFTViewer
 
         private void FormFourier_Shown(object sender, EventArgs e)
         {
-            //_Provider = new Mp3Provider(OpenFile());
-            _Provider = new LoopbackCaptureProvider();
+            _Provider = new Mp3Provider(OpenFile());
+            //_Provider = new LoopbackCaptureProvider();
             //_Provider = new WaveInProvider();
 
             _Reader = _Provider.GetReader(0, FFTLength(_Provider.Format.SampleRate));
@@ -69,11 +69,12 @@ namespace FFTViewer
                 OffsetMax = 5,
             };
             _NoteLabel = new NoteLabelGroup { Range = _Range };
-            _Recorder = new FFTImageRecorder(600, 800, 3, Color.White, Color.Green);
+            _Recorder = new FFTImageRecorder(600, 800, 3, Color.White, Color.Red, Color.Yellow);
             _RendererFFT = new Renderer
             {
                 Target = pictureBox2,
-                Source = GetFFTData,
+                //Source = GetFFTData,
+                Source2 = GetFFTData2,
 
                 ScaleX = _Range.CalculateLogScale,
                 ScaleY = CalcScaleYFFT,
@@ -84,7 +85,7 @@ namespace FFTViewer
                 MarginTop = 0,
                 MarginBottom = 0,
 
-                LabelsXBackground = _NoteLabel,
+                //LabelsXBackground = _NoteLabel,
 
                 ImageRecorder = _Recorder,
             };
@@ -144,7 +145,7 @@ namespace FFTViewer
         
         private static int FFTLength(int sampleRate)
         {
-            return 8 * (int)(0.024f * sampleRate); //Magic number for performing FFT.
+            return 8 * (int)(0.020f * sampleRate); //Magic number for performing FFT.
         }
 
         private float[] GetFFTData()
@@ -152,6 +153,14 @@ namespace FFTViewer
             _PlayControl.Update();
             _FFTPlayer.Calculate();
             return _FFTPlayer.Buffer;
+        }
+
+        private void GetFFTData2(out float[] d1, out float[] d2)
+        {
+            _PlayControl.Update();
+            _FFTPlayer.Calculate();
+            d1 = _FFTPlayer.Buffer;
+            d2 = _FFTPlayer.Buffer2;
         }
 
         private void button1_Click(object sender, EventArgs e)

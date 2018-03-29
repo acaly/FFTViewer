@@ -1,6 +1,7 @@
 ﻿using NAudio.Wave;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,9 @@ namespace FFTViewer
 
             private WaveInProvider _Provider;
             private CaptureBuffer _Buffer;
+            private Stopwatch _Clock = Stopwatch.StartNew();
+
+            private float _LastReceivedTime;
 
             public IAudioProvider Provider => _Provider;
             public int BufferLength { get; private set; }
@@ -37,12 +41,14 @@ namespace FFTViewer
 
             private void Capture_DataAvailable(object sender, WaveInEventArgs e)
             {
+                _LastReceivedTime = _Clock.ElapsedTicks / (float)TimeSpan.TicksPerSecond;
                 _Buffer.Write(e.Buffer, e.BytesRecorded);
             }
 
-            public void GetRawBuffer(out byte[] buffer, out int offset)
+            public float GetRawBuffer(out byte[] buffer, out int offset)
             {
                 _Buffer.Read(out buffer, out offset);
+                return _LastReceivedTime;
             }
         }
 

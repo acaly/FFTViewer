@@ -37,15 +37,36 @@ namespace FFTViewer
             {
             }
 
-            public void GetRawBuffer(out byte[] buffer, out int offset)
+            private int _Pos = 0;
+
+            public float GetRawBuffer(out byte[] buffer, out int offset)
             {
+                float time = _Provider._Timer.TimeMs;
+                //float time = (_Pos++ / 44100f) * 1000;
                 buffer = _Provider._RawData;
-                int frame = (int)(_Provider._Timer.TimeMs / 1000 * 44100);
+                int frame = (int)(time / 1000 * 44100);
                 offset = frame * _FrameLength;
                 if (offset > _MaxOffset)
                 {
                     offset = _MaxOffset;
                 }
+                return time / 1000f;
+            }
+        }
+
+        private static WaveStream OpenWaveFile(string filename)
+        {
+            if (Path.GetExtension(filename) == ".wav")
+            {
+                return new WaveFileReader(filename);
+            }
+            else if (Path.GetExtension(filename) == ".mp3")
+            {
+                return new Mp3FileReader(filename);
+            }
+            else
+            {
+                return new RawSourceWaveStream(File.OpenRead(filename), new WaveFormat());
             }
         }
 
@@ -54,7 +75,7 @@ namespace FFTViewer
             byte[] convertedData;
             int size;
             WaveFormat f = new WaveFormat(44100, 16, 2);
-            using (Mp3FileReader r = new Mp3FileReader(filename))
+            using (WaveStream r = OpenWaveFile(filename))
             {
                 using (var conv = new WaveFormatConversionStream(f, r))
                 {

@@ -10,24 +10,27 @@ namespace FFTViewer
 {
     class FFTImageRasterizer
     {
-        public FFTImageRasterizer(int width, Color c0, Color c)
+        public FFTImageRasterizer(int width, Color c0, Color c1, Color c2)
         {
             _Buffer = new int[width];
             _C0 = c0;
-            _C = c;
+            _C1 = c1;
+            _C2 = c2;
         }
 
-        private Color _C0, _C;
+        private Color _C0, _C1, _C2;
 
         private int[] _Buffer;
 
         private bool _HasLast;
         private float _LastPixelX;
         private float _LastPixelY;
+        private float _LastPixelZ;
 
         private bool _HasCurrent;
         private float _CurrentPixelX;
         private float _CurrentPixelY;
+        private float _CurrentPixelZ;
 
         public void Begin()
         {
@@ -42,13 +45,14 @@ namespace FFTViewer
             }
         }
 
-        public void DrawPoint(float x, float y)
+        public void DrawPoint(float x, float y, float ex)
         {
             if (!_HasLast)
             {
                 _HasLast = true;
                 _LastPixelX = x;
                 _LastPixelY = y;
+                _LastPixelZ = ex;
                 _HasCurrent = false;
 
                 for (int i = 0; i <= x; ++i)
@@ -63,11 +67,13 @@ namespace FFTViewer
                 _HasCurrent = true;
                 _CurrentPixelX = x;
                 _CurrentPixelY = y;
+                _CurrentPixelZ = ex;
             }
             else
             {
                 _CurrentPixelX = x;
                 _CurrentPixelY = Math.Max(y, _CurrentPixelY);
+                _CurrentPixelZ = ex; //TODO how to update z?
             }
 
             if (Math.Ceiling(_LastPixelX) < Math.Floor(_CurrentPixelX))
@@ -84,27 +90,33 @@ namespace FFTViewer
                     }
                     float pos = (i - _LastPixelX) / (_CurrentPixelX - _LastPixelX);
                     float drawY = _LastPixelY * (1 - pos) + _CurrentPixelY * pos;
-                    _Buffer[i] = GetColor(drawY);
+                    float drawZ = _LastPixelZ * (1 - pos) + _CurrentPixelZ * pos;
+                    _Buffer[i] = GetColor(drawY, drawZ);
                 }
 
                 _LastPixelX = _CurrentPixelX;
                 if (_LastPixelX == Math.Floor(_LastPixelX)) _LastPixelX += 1;
                 _LastPixelY = _CurrentPixelY;
+                _LastPixelZ = _CurrentPixelZ;
 
                 _HasCurrent = false;
             }
         }
 
-        private int GetColor(float val)
+        private static Color InterceptColor(Color c1, Color c2, float x)
         {
-            var x = val;
             if (x > 1) x = 1;
             if (x < 0) x = 0;
             var y = 1 - x;
-            var r = _C0.R * y + _C.R * x;
-            var g = _C0.G * y + _C.G * x;
-            var b = _C0.B * y + _C.B * x;
-            return Color.FromArgb((int)r, (int)g, (int)b).ToArgb();
+            var r = c1.R * y + c2.R * x;
+            var g = c1.G * y + c2.G * x;
+            var b = c1.B * y + c2.B * x;
+            return Color.FromArgb((int)r, (int)g, (int)b);
+        }
+
+        private int GetColor(float val, float val2)
+        {
+            return InterceptColor(_C0, InterceptColor(_C1, _C2, val2), val).ToArgb();
         }
 
         public void CopyTo(IntPtr ptr)
