@@ -157,7 +157,7 @@ namespace FFTViewer
 
         public float[] GetSpectrum()
         {
-            return SpectrumCompressor.CompressInt16(_RawData, 8000);
+            return SpectrumCompressor.CompressInt16(_RawData, 8000, 4000);
         }
 
         public void Play()

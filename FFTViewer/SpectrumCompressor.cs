@@ -8,8 +8,13 @@ namespace FFTViewer
 {
     class SpectrumCompressor
     {
-        public static float[] CompressInt16(byte[] rawData, int ratio)
+        public static float[] CompressInt16(byte[] rawData, int ratio, int minNumber)
         {
+            while (rawData.Length / 2 / ratio < minNumber)
+            {
+                ratio /= 2;
+                if (ratio == 1) break;
+            }
             float[] ret = new float[((rawData.Length / 2 - 1) / ratio + 1) * 2];
             for (int i = 0; i < ret.Length / 2; ++i)
             {
