@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FFTViewer
 {
-    class FFTImageRecorder
+    class FFTImageRecorder : IFFTDataReceiver, IRenderingLayer
     {
         public FFTImageRecorder(int imageWidth, int imageHeight, float ratioY, Color c0, Color c1, Color c2)
         {
@@ -29,7 +29,7 @@ namespace FFTViewer
 
         public bool Enabled = true;
 
-        public void Write(RectangleF rect, PointF[] points, float[] channel2)
+        public void WriteData(RectangleF rect, PointF[] points, float[] channel2)
         {
             if (!Enabled)
             {
@@ -84,12 +84,12 @@ namespace FFTViewer
             return empty;
         }
 
-        public void DrawBitmap(Graphics g, RectangleF rect)
+        public void Draw(ScaledGraphics g)
         {
             //Try to be fast
-            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighSpeed;
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
+            g.Target.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            g.Target.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighSpeed;
+            g.Target.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
 
             if (_PositionY == 0) return;
 
@@ -97,10 +97,10 @@ namespace FFTViewer
 
             try
             {
-                var empty = DrawBitmapSection(g, rect, 0, _PositionY);
+                var empty = DrawBitmapSection(g.Target, g.Rect, 0, _PositionY);
                 if (_WrapImage)
                 {
-                    DrawBitmapSection(g, empty, _PositionY, _Image.Height);
+                    DrawBitmapSection(g.Target, empty, _PositionY, _Image.Height);
                 }
             }
             finally

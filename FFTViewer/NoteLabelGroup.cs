@@ -4,38 +4,40 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static FFTViewer.NoteConstants;
 
 namespace FFTViewer
 {
-    class NoteLabelGroup : ILabelXProvider
+    class NoteLabelGroup : LabelXLayer
     {
         public NoteRange Range;
 
-        private void DrawGroup(ILabelXRenderer r, int i)
+        private void DrawGroup(int i, float distanct)
         {
             Pen p = (i & 1) == 0 ? Pens.Red : Pens.Blue;
-            float v = Range.GroupBase(i);
-            r.Draw(p, v);
-            v *= Inc2;
-            r.Draw(p, v);
-            v *= Inc2;
-            r.Draw(p, v);
-            v *= Inc;
-            r.Draw(p, v);
-            v *= Inc2;
-            r.Draw(p, v);
-            v *= Inc2;
-            r.Draw(p, v);
-            v *= Inc2;
-            r.Draw(p, v);
+            var v = i * distanct;
+            var inc = distanct / 12;
+            var inc2 = inc * 2;
+            DrawLine(p, v);
+            v += inc2;
+            DrawLine(p, v);
+            v += inc2;
+            DrawLine(p, v);
+            v += inc;
+            DrawLine(p, v);
+            v += inc2;
+            DrawLine(p, v);
+            v += inc2;
+            DrawLine(p, v);
+            v += inc2;
+            DrawLine(p, v);
         }
 
-        public void DrawAll(ILabelXRenderer r)
+        public override void DrawAll()
         {
+            var distance = 1.0f / (Range.GroupCount - 1);
             for (int i = 0; i < Range.GroupCount; ++i)
             {
-                DrawGroup(r, i);
+                DrawGroup(i, distance);
             }
         }
     }

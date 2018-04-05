@@ -66,7 +66,7 @@ namespace FFTViewer
         }
     }
 
-    class PlayControlLabelXProvider : ILabelXProvider
+    class PlayControlLabelXProvider : LabelXLayer
     {
         public PlayControlLabelXProvider(IAudioPlayControl playControl)
         {
@@ -75,9 +75,9 @@ namespace FFTViewer
 
         private readonly IAudioPlayControl _PlayControl;
 
-        public void DrawAll(ILabelXRenderer r)
+        public override void DrawAll()
         {
-            r.Draw(System.Drawing.Pens.Red, _PlayControl.PositionRatio);
+            DrawLine(System.Drawing.Pens.Red, _PlayControl.PositionRatio);
         }
     }
 }

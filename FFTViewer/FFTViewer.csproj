@@ -115,7 +115,8 @@
     <Compile Include="FFTPlayer.cs" />
     <Compile Include="IAudioProvider.cs" />
     <Compile Include="IFFTDataReader.cs" />
-    <Compile Include="ILabelXProvider.cs" />
+    <Compile Include="IFFTDataReceiver.cs" />
+    <Compile Include="LabelXLayer.cs" />
     <Compile Include="IRenderingLayer.cs" />
     <Compile Include="LoopbackCaptureProvider.cs" />
     <Compile Include="NoteConstants.cs" />

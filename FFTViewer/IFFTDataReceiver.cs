@@ -7,13 +7,8 @@ using System.Threading.Tasks;
 
 namespace FFTViewer
 {
-    interface ILabelXRenderer
+    interface IFFTDataReceiver
     {
-        void Draw(Pen pen, float x);
-    }
-
-    interface ILabelXProvider
-    {
-        void DrawAll(ILabelXRenderer r);
+        void WriteData(RectangleF rect, PointF[] points, float[] channel2);
     }
 }

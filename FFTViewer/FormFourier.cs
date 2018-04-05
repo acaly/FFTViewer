@@ -38,8 +38,8 @@ namespace FFTViewer
 
         private void FormFourier_Shown(object sender, EventArgs e)
         {
-            _Provider = new Mp3Provider(OpenFile());
-            //_Provider = new LoopbackCaptureProvider();
+            //_Provider = new Mp3Provider(OpenFile());
+            _Provider = new LoopbackCaptureProvider();
             //_Provider = new WaveInProvider();
 
             _Reader = _Provider.GetReader(0, FFTLength(_Provider.Format.SampleRate));
@@ -51,8 +51,6 @@ namespace FFTViewer
             {
                 Source = () => _Compressed,
 
-                LabelsXForeground = new PlayControlLabelXProvider(_PlayControl),
-
                 ScaleY = CalcScaleYSpec,
 
             };
@@ -63,6 +61,7 @@ namespace FFTViewer
                 MarginBottom = 10,
             };
             _ManagerSpectrum.Layers.Add(_RendererSpectrum);
+            _ManagerSpectrum.Layers.Add(new PlayControlLabelXProvider(_PlayControl));
 
             _ManagerSpectrum.Start(120);
             _ManagerSpectrum.DoubleClick += RendererSpectrum_DoubleClick;
@@ -83,11 +82,8 @@ namespace FFTViewer
                 ScaleX = _Range.CalculateLogScale,
                 ScaleY = CalcScaleYFFT,
                 FixedRangeY = 10,
-
-                //LabelsXBackground = _NoteLabel,
-
-                ImageRecorder = _Recorder,
             };
+            _RendererFFT.DataReceivers.Add(_Recorder);
             _ManagerFFT = new RenderingManager
             {
                 Target = pictureBox2,
@@ -97,7 +93,9 @@ namespace FFTViewer
                 MarginTop = 0,
                 MarginBottom = 0,
             };
+            _ManagerFFT.Layers.Add(_Recorder);
             _ManagerFFT.Layers.Add(_RendererFFT);
+            _ManagerFFT.Layers.Add(_NoteLabel);
 
             _Provider.StateChanged += () =>
             {
