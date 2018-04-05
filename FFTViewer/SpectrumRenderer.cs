@@ -6,19 +6,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Timer = System.Timers.Timer;
 
 namespace FFTViewer
 {
-    class Renderer
+    class SpectrumRenderer : IRenderingLayer
     {
         public delegate void GetTwoChannelDataDelegate(out float[] d1, out float[] d2);
 
         private PointF[] _PointBuffer;
-        private Timer _Timer;
 
-        public Control Target;
-        public float MarginLeft, MarginRight, MarginTop, MarginBottom;
         public float? FixedRangeY = null;
 
         public Func<float[]> Source;
@@ -28,7 +24,6 @@ namespace FFTViewer
 
         public ILabelXProvider LabelsXForeground, LabelsXBackground;
 
-        public event Action<float, float> DoubleClick;
         public FFTImageRecorder ImageRecorder;
 
         private void EnsureBuffer(int len)
@@ -84,7 +79,7 @@ namespace FFTViewer
             EnsureBuffer(size);
         }
 
-        public void Render(Graphics g, float[] val, float[] val2 = null)
+        private void RenderInternal(ScaledGraphics g, float[] val, float[] val2 = null)
         {
             if (val.Length < 2) return;
 
@@ -95,28 +90,25 @@ namespace FFTViewer
             {
                 ResizeBuffer(val.Length);
             }
-
-            var region = Target.ClientRectangle;
-            var left = region.Left + MarginLeft;
-            var top = region.Top + MarginTop;
-            var width = region.Width - MarginLeft - MarginRight;
-            var height = region.Height - MarginTop - MarginBottom;
+            
+            var left = g.Rect.X;
+            var top = g.Rect.Y;
+            var width = g.Rect.Width;
+            var height = g.Rect.Height;
             
             var y0 = top;
             var ystep = height;
-
-            var maxPointNum = width * 3;
             
             CalculatePoints(val, left, width / (val.Length - 1), y0, ystep);
             
             //Record
             var recorderRect = new RectangleF(left, top, width, height);
             ImageRecorder?.Write(recorderRect, _PointBuffer, val2);
-            ImageRecorder?.DrawBitmap(g, recorderRect);
+            ImageRecorder?.DrawBitmap(g.Target, recorderRect);
             
             var labelXRenderer = new LabelXRenderer
             {
-                g = g,
+                g = g.Target,
                 x0 = left,
                 x1 = left + width,
                 y0 = top,
@@ -125,7 +117,7 @@ namespace FFTViewer
             };
 
             //X axis
-            g.DrawLine(Pens.Gray, left, y0 + ystep, left + width, y0 + ystep);
+            g.Target.DrawLine(Pens.Gray, left, y0 + ystep, left + width, y0 + ystep);
 
             //Background label
             LabelsXBackground?.DrawAll(labelXRenderer);
@@ -134,7 +126,7 @@ namespace FFTViewer
             try
             {
                 //In case of NaN/Inf
-                g.DrawLines(Pens.Black, _PointBuffer);
+                g.Target.DrawLines(Pens.Black, _PointBuffer);
             }
             catch
             {
@@ -143,84 +135,17 @@ namespace FFTViewer
             //Foreground label
             LabelsXForeground?.DrawAll(labelXRenderer);
         }
-
-        public void Start(int interval)
+        
+        public void Draw(ScaledGraphics g)
         {
-            Target.FindForm().FormClosed += Renderer_FormClosed;
-            Target.Paint += Target_Paint;
-            Target.Resize += Target_Resize;
-            Target.DoubleClick += Target_DoubleClick;
-
-            if (interval != 0)
-            {
-                _Timer = new Timer(interval);
-                _Timer.Elapsed += Timer_Elapsed;
-                _Timer.Start();
-            }
-
-            Target.Invalidate();
-        }
-
-        private void Renderer_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            Stop();
-        }
-
-        private void Target_DoubleClick(object sender, EventArgs e)
-        {
-            var region = Target.ClientRectangle;
-            var left = region.Left + MarginLeft;
-            var top = region.Top + MarginTop;
-            var width = region.Width - MarginLeft - MarginRight;
-            var height = region.Height - MarginTop - MarginBottom;
-
-            var p = Target.PointToClient(Control.MousePosition);
-            var x = (p.X - left) / width;
-            var y = (p.Y - top) / height;
-            
-            if (x >= 0 && x <= 1 && y >= 0 && y <= 1)
-            {
-                DoubleClick?.Invoke(x, y);
-            }
-        }
-
-        private void Target_Resize(object sender, EventArgs e)
-        {
-            Target.Invalidate();
-        }
-
-        private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            try
-            {
-                Target.Invoke((Action)Target.Invalidate);
-            }
-            catch
-            {
-            }
-        }
-
-        public void Stop()
-        {
-            if (_Timer != null)
-            {
-                _Timer.Stop();
-                _Timer.Dispose();
-                _Timer = null;
-            }
-        }
-
-        private void Target_Paint(object sender, PaintEventArgs e)
-        {
-            e.Graphics.Clear(Color.White);
             if (Source2 != null)
             {
                 Source2(out var d1, out var d2);
-                Render(e.Graphics, d1, d2);
+                RenderInternal(g, d1, d2);
             }
             else
             {
-                Render(e.Graphics, Source());
+                RenderInternal(g, Source());
             }
         }
     }

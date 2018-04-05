@@ -47,20 +47,25 @@ namespace FFTViewer
             _Compressed = _PlayControl.GetSpectrum();
             _FFTPlayer = new FFTPlayer(_Reader);
 
-            _RendererSpectrum = new Renderer
+            _RendererSpectrum = new SpectrumRenderer
             {
-                Target = pictureBox1,
                 Source = () => _Compressed,
 
                 LabelsXForeground = new PlayControlLabelXProvider(_PlayControl),
 
                 ScaleY = CalcScaleYSpec,
 
+            };
+            _ManagerSpectrum = new RenderingManager
+            {
+                Target = pictureBox1,
                 MarginTop = 10,
                 MarginBottom = 10,
             };
-            _RendererSpectrum.Start(120);
-            _RendererSpectrum.DoubleClick += RendererSpectrum_DoubleClick;
+            _ManagerSpectrum.Layers.Add(_RendererSpectrum);
+
+            _ManagerSpectrum.Start(120);
+            _ManagerSpectrum.DoubleClick += RendererSpectrum_DoubleClick;
 
             _Range = new NoteRange
             {
@@ -70,9 +75,8 @@ namespace FFTViewer
             };
             _NoteLabel = new NoteLabelGroup { Range = _Range };
             _Recorder = new FFTImageRecorder(600, 800, 3, Color.White, Color.Red, Color.Yellow);
-            _RendererFFT = new Renderer
+            _RendererFFT = new SpectrumRenderer
             {
-                Target = pictureBox2,
                 //Source = GetFFTData,
                 Source2 = GetFFTData2,
 
@@ -80,15 +84,20 @@ namespace FFTViewer
                 ScaleY = CalcScaleYFFT,
                 FixedRangeY = 10,
 
-                MarginLeft = 10,
-                MarginRight = 10,
-                MarginTop = 0,
-                MarginBottom = 0,
-
                 //LabelsXBackground = _NoteLabel,
 
                 ImageRecorder = _Recorder,
             };
+            _ManagerFFT = new RenderingManager
+            {
+                Target = pictureBox2,
+
+                MarginLeft = 10,
+                MarginRight = 10,
+                MarginTop = 0,
+                MarginBottom = 0,
+            };
+            _ManagerFFT.Layers.Add(_RendererFFT);
 
             _Provider.StateChanged += () =>
             {
@@ -96,7 +105,7 @@ namespace FFTViewer
             };
             _Recorder.Enabled = _Provider.IsPlaying;
 
-            _RendererFFT.Start(15);
+            _ManagerFFT.Start(15);
         }
 
         private float CalcScaleYFFT(float r)
@@ -134,8 +143,10 @@ namespace FFTViewer
         private IAudioPlayControl _PlayControl;
         private float[] _Compressed;
         private FFTPlayer _FFTPlayer;
-        private Renderer _RendererSpectrum;
-        private Renderer _RendererFFT;
+        private SpectrumRenderer _RendererSpectrum;
+        private RenderingManager _ManagerSpectrum;
+        private SpectrumRenderer _RendererFFT;
+        private RenderingManager _ManagerFFT;
         private FFTImageRecorder _Recorder;
         private NoteRange _Range;
         private NoteLabelGroup _NoteLabel;

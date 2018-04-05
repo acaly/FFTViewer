@@ -116,6 +116,7 @@
     <Compile Include="IAudioProvider.cs" />
     <Compile Include="IFFTDataReader.cs" />
     <Compile Include="ILabelXProvider.cs" />
+    <Compile Include="IRenderingLayer.cs" />
     <Compile Include="LoopbackCaptureProvider.cs" />
     <Compile Include="NoteConstants.cs" />
     <Compile Include="NoteLabelGroup.cs" />
@@ -124,7 +125,9 @@
     <Compile Include="PlayerTimer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Renderer.cs" />
+    <Compile Include="RenderingManager.cs" />
+    <Compile Include="ScaledGraphics.cs" />
+    <Compile Include="SpectrumRenderer.cs" />
     <Compile Include="ReverseTest.cs" />
     <Compile Include="SpectrumCompressor.cs" />
     <Compile Include="WaveInProvider.cs" />
